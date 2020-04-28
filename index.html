@@ -1,0 +1,322 @@
+<!DOCTYPE HTML>
+
+<html>
+	<head>
+		<title>CSE 578 Team 11</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+		<script type="text/javascript" src="https://d3js.org/d3.v2.min.js"></script>
+	</head>
+	<body class="is-preload landing">
+		<div id="page-wrapper">
+
+			<!-- Header -->
+				<header id="header">
+				</header>
+
+			<!-- Banner -->
+				<section id="banner">
+					<div class="content">
+						<header>
+							<h2 >Sentiment and Product trend Analysis on Amazon</h2>
+							<p>Customers, Sellers & Analysts, We got you covered!<br />
+							Analyse before you invest.</p>
+						</header>
+						<span class="image" ><img style = "border-radius: 50%;width: 100%;height: 100%;" src="images/collage.png" alt="" /></span>
+					</div>
+					<a href="#one" class="goto-next scrolly">Next</a>
+				</section>
+
+			<!-- One -->
+				<section id="one" class="spotlight style1 bottom">
+					<span class="image fit main"><img src="images/pic02.jpg" alt="" /></span>
+					<div class="content">
+						<div class="container">
+							<div class="row">
+								<div class="col-4 col-12-medium">
+									<header>
+										<h2>Odio faucibus ipsum integer consequat</h2>
+										<p>Nascetur eu nibh vestibulum amet gravida nascetur praesent</p>
+									</header>
+								</div>
+								<div class="col-4 col-12-medium">
+									<p>Feugiat accumsan lorem eu ac lorem amet sed accumsan donec.
+									Blandit orci porttitor semper. Arcu phasellus tortor enim mi
+									nisi praesent dolor adipiscing. Integer mi sed nascetur cep aliquet
+									augue varius tempus lobortis porttitor accumsan consequat
+									adipiscing lorem dolor.</p>
+								</div>
+								<div class="col-4 col-12-medium">
+									<p>Morbi enim nascetur et placerat lorem sed iaculis neque ante
+									adipiscing adipiscing metus massa. Blandit orci porttitor semper.
+									Arcu phasellus tortor enim mi mi nisi praesent adipiscing. Integer
+									mi sed nascetur cep aliquet augue varius tempus. Feugiat lorem
+									ipsum dolor nullam.</p>
+								</div>
+							</div>
+						</div>
+					</div>
+					<a href="#two" class="goto-next scrolly">Next</a>
+				</section>
+
+			<!-- Two -->
+				<div id="two" class=" style2 right" >
+					
+						<style type="text/css">
+							.axis path,.axis line {
+								fill: none;
+								stroke: #000;
+								shape-rendering: crispEdges;
+							}
+
+							.x.axis path {
+								fill: none;
+								stroke: #000;
+								shape-rendering: crispEdges;
+							}
+							.line {
+								fill: none;
+								stroke-width: 7px;
+							}
+							.category {opacity: 0.3;}
+							.category:hover {opacity:1;}
+						</style>
+						<div class="content">
+						<header>
+							<h2 style="padding-left: 2%">Time Series Visualization on Amazon product categories</h2>
+							<p style="padding-left: 2%">Find meaningful insights from various parameters which help you understand the demands and drive the business<br/></p>
+						
+						</header>
+					</div>
+						<p id="menu" style="padding-left: 1%">Select series: <select>
+    <option value="SCOM">Sales count in each category every month</option>
+    <option value="AROM">Average rating for category every month</option>
+    <option value="NOUC">No. of unique buyers every month</option>
+    </select>
+
+
+  <script type="text/javascript">
+
+    var color = d3.scale.category10(); 
+    var categories, filtered, transpose, altKey;
+
+// perform all the intital steps such as margin, x and y axis
+    var margin = {top: 20, right: 140, bottom: 30, left: 100},
+    w = 1200 - margin.left - margin.right,
+    h = 400 - margin.top - margin.bottom,
+    x = d3.time.scale().range([0, w]),
+    y = d3.scale.linear().range([h, 0]);
+    parseDate = d3.time.format("%m").parse;
+    //console.log(parseDate('01'));
+        
+    var line = d3.svg.line()
+       .interpolate("basis")
+       .x(function(d) { return x(d.month); })
+       .y(function(d) { return y(d.stat); });
+
+
+    var svg = d3.select("div").append("svg")
+        .attr("width", w + margin.left + margin.right)
+        .attr("height", h + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // x axis
+    var xAxis = d3.svg.axis().scale(x)
+        .orient("bottom")
+       svg.append("svg:g")
+        .attr("class", "x axis")
+        .style({
+      stroke:"#fff",
+     
+    })
+        ;
+
+    // y axis
+    var yAxis = d3.svg.axis().scale(y)
+        .orient("left")
+        svg.append("svg:g")
+        .attr("class", "y axis")
+        .style({
+      stroke:"#fff",
+     
+    })
+        ;
+        
+    var menu = d3.select("#menu select").on("change", changeVis);    
+
+d3.csv("amazon_vis_data.csv", function(data) {
+    categories = data;
+    render();
+});
+
+d3.select(window)
+    .on("keydown", function() { altKey = d3.event.altKey; })
+    .on("keyup", function() { altKey = false; });
+
+//var altKey;
+  
+function changeVis() {
+    clearTimeout(timeout);
+    d3.transition()
+    .duration(altKey ? 4000 : 1500)
+    .each(render);
+}
+
+function render() {
+    
+    var nested = d3.nest()
+		.key(function(d) { return d.visCode; })
+        .map(categories)
+
+    var series = menu.property("value");
+    var data = nested[series];
+    var viskey = d3.keys(data[0]).filter(function(key) { 
+     	    return (key !== "visName" && key !== "monthCode" && key !== "visCode" && key !== "month");
+     	});
+    
+    var transpose = viskey.map(function(name) {
+        return {
+            name: name,
+            values: data.map(function(d) {
+            return {month: parseDate(d.month), stat: +d[name]};
+            })
+        };
+    });
+    x.domain([d3.min(transpose, function(c) { return d3.min(c.values, function(v) { return v.month; }); }),
+    d3.max(transpose, function(c) { return d3.max(c.values, function(v) { return v.month; }); })
+  ]);
+
+    y.domain([d3.min(transpose, function(c) { return d3.min(c.values, function(v) { return v.stat; }); }),
+    d3.max(transpose, function(c) { return d3.max(c.values, function(v) { return v.stat; }); })
+  ]);
+
+    var category = svg.selectAll(".category").data(transpose);
+
+    var categoryEnter = category.enter().append("g")
+      .attr("class", "category")
+      .attr("id", function(d) { return d.name; }).style({
+      stroke:"#fff",
+     
+    });
+    
+    categoryEnter.append("path")
+      .attr("class", "line")
+      .attr("d", function(d) { return line(d.values); })
+      .style("stroke", function(d) { return color(d.name); });
+
+    categoryEnter.append("text")
+     .attr("class", "names")
+     .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
+     .attr("transform", function(d) { return "translate(" + x(d.value.month) + "," + y(d.value.stat) + ")"; })
+     .attr("x", 4)
+     .attr("dy", ".35em")
+     .text(function(d) { return d.name; });
+
+    var categoryUpdate = d3.transition(category);
+    
+    categoryUpdate.select("path")
+      .attr("d", function(d) { return line(d.values); });
+    
+    categoryUpdate.select("text")
+       .attr("transform", function(d) { return "translate(" + x(d.values[d.values.length - 1].month) + "," + y(d.values[d.values.length - 1].stat) + ")"; });
+  
+    d3.transition(svg).select(".y.axis")
+        .call(yAxis);   
+          
+    d3.transition(svg).select(".x.axis")
+        .attr("transform", "translate(0," + h + ")")
+        .call(xAxis);
+          
+}
+
+var timeout = setTimeout(function() {
+  menu.property("value", "SCOM").node().focus();
+  changeVis();
+}, 7000);
+
+
+	</script>
+
+					<a href="#three" class="goto-next scrolly">Next</a>
+				</div>
+
+			<!-- Three -->
+
+			<!-- Four -->
+				<section id="four" class="wrapper style1 special fade-up">
+					<div class="container">
+						<header class="major">
+							<h2>Team Members</h2>
+						</header>
+						<div class="box alt">
+							<div class="row gtr-uniform">
+								<section class="col-4 col-6-medium col-12-xsmall">
+									<span class="icon solid alt major fas fa-male"></span>
+									<h3>Aditya Das</h3>
+									<p>email : adas60@asu.edu <br/> <a href="https://linkedin.com/in/adityadas11" class="icon brands alt fa-linkedin-in"><span class="label">LinkedIn</span></a></p>
+								</section>
+								<section class="col-4 col-6-medium col-12-xsmall">
+									<span class="icon solid alt major fas fa-male"> </span>
+									<h3>Leroy Jacob Vargis</h3>
+									<p>email : lvargis@asu.edu <br/> <a href="https://www.linkedin.com/in/leroyjv" class="icon brands alt fa-linkedin-in"><span class="label">LinkedIn</span></a></p>
+								</section>
+								<section class="col-4 col-6-medium col-12-xsmall">
+									<span class="icon solid alt major fas fa-female"></span>
+									<h3>Menaka Kollu</h3>
+									<p>email : mkollu@asu.edu <br/> <a href="https://www.linkedin.com/in/menaka-kollu-725b72bb/" class="icon brands alt fa-linkedin-in"><span class="label">LinkedIn</span></a></p>
+								</section>
+								<section class="col-4 col-6-medium col-12-xsmall">
+									<span class="icon solid alt major fas fa-female"></span>
+									<h3>Smruti Sudha Dash</h3>
+									<p>email : ssdash@asu.edu <br/> <a href="https://www.linkedin.com/in/smrutidash/" class="icon brands alt fa-linkedin-in"><span class="label">LinkedIn</span></a></p>
+								</section>
+								<section class="col-4 col-6-medium col-12-xsmall">
+									<span ></span>
+									<h3></h3>
+									<p></p>
+								</section>
+								<section class="col-4 col-6-medium col-12-xsmall">
+									<span class="icon solid alt major fas fa-male"></span>
+									<h3>Sunil Kumar Samal</h3>
+									<p>email : sksamal1@asu.edu <br/> <a href="https://www.linkedin.com/in/sunil-kumar-samal/" class="icon brands alt fa-linkedin-in"><span class="label">LinkedIn</span></a></p>
+								</section>
+							</div>
+						</div>
+					</div>
+				</section>
+
+			
+
+			<!-- Footer -->
+				<footer id="footer">
+					<ul class="icons">
+						
+						
+						
+						
+						<li><a href="#" class="icon brands alt fa-github"><span class="label">GitHub</span></a></li>
+						
+					</ul>
+					<ul class="copyright">
+						<li>&copy; CSE 578 Team 11. All rights reserved.</li>
+					</ul>
+				</footer>
+
+		</div>
+
+		<!-- Scripts -->
+			<script src="assets/js/jquery.min.js"></script>
+			<script src="assets/js/jquery.scrolly.min.js"></script>
+			<script src="assets/js/jquery.dropotron.min.js"></script>
+			<script src="assets/js/jquery.scrollex.min.js"></script>
+			<script src="assets/js/browser.min.js"></script>
+			<script src="assets/js/breakpoints.min.js"></script>
+			<script src="assets/js/util.js"></script>
+			<script src="assets/js/main.js"></script>
+			
+
+	</body>
+</html>
