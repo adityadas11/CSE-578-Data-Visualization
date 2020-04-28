@@ -147,7 +147,7 @@
         
     var menu = d3.select("#menu select").on("change", changeVis);    
 
-d3.csv("amazon_vis_data.csv", function(data) {
+d3.csv("https://raw.githubusercontent.com/adityadas11/CSE-578-Data-Visualization/master/amazon_vis_data.csv?token=AO3FEJPEXI4TDE3II3TCJ626VC4CY", function(data) {
     categories = data;
     render();
 });
