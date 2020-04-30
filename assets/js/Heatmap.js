@@ -27,9 +27,19 @@ var svg_w = d3.select("#word_cloud").append("svg")
 
 // This function takes the output of 'layout' above and draw the words
 // Wordcloud features that are THE SAME from one word to the other can be here
+
+var wordcloud;
+$.getJSON("wordcloud.json", function(json) {
+  // console.log(json); // this will show the info it in firebug console
+  wordcloud = json
+
+});
+
   var layout = d3.layout.cloud()
   .size([width, height])
+
 function draw_words(words) {
+  console.log("drawing")
   svg_w.html("");
   svg_w
     .append("g")
@@ -37,7 +47,7 @@ function draw_words(words) {
       .selectAll("text")
         .data(words)
         .enter().append("text")
-        .style("font-size", function(d) { return (d.size*0.1) + "px"; })
+        .style("font-size", function(d) { return (d.size / 2) + "px"; })
         .style("fill", function(d, i) { return color(i); })
         .attr("transform", function(d) {
             return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
@@ -113,16 +123,29 @@ d3.csv("https://raw.githubusercontent.com/Menaka811/DV_FinalProject/master/data.
     .style("border-width", "2px")
     .style("border-radius", "5px")
     .style("padding", "5px")
-   var wordclouddata=JSON.parse(wordcloud)
+
+    // var wordclouddata=JSON.parse(wordcloud)
+    var wordclouddata=wordcloud
    console.log(wordclouddata)
+
+   function getwordsfromlist(category, month) {
+    //  console.log(category, month)
+    category = category + "_5";
+    wordlist = wordcloud[category][month];
+
+    
+    // console.log(words)
+    return wordlist
+   }
+
    var mouseover= function(d){
-     console.log(d.group);
-     console.log(d.variable);
-    layout.words(frequency_list)
+    //  console.log(d.group);
+    //  console.log(d.variable);
+    layout.words(getwordsfromlist(d.variable, d.group))
     .padding(5)        //space between words
     .rotate(-45)       // rotation angle in degrees
-    //.fontSize(20)      // font size of words
-    .fontSize(function(d) { return d.size; })
+    // .fontSize(20)      // font size of words
+    .fontSize(function(d) { return d.size ; })
     .on("end", draw_words);
   layout.start();
   
